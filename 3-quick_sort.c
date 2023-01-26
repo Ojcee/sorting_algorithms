@@ -1,73 +1,82 @@
 #include "sort.h"
 
-/**
- * swap_items - Swaps two items in an array.
- * @array: The array to modify.
- * @l: The index of the left item.
- * @r: The index of the right item.
- */
-void swap_items(int *array, size_t l, size_t r)
-{
-	int tmp;
+void merge_subarr(int *subarr, int *buff, size_t front, size_t mid,
+		size_t back);
+void merge_sort_recursive(int *subarr, int *buff, size_t front, size_t back);
+void merge_sort(int *array, size_t size);
 
-	if (array != NULL)
+/**
+ * merge_subarr - Sort a subarray of integers.
+ * @subarr: A subarray of an array of integers to sort.
+ * @buff: A buffer to store the sorted subarray.
+ * @front: The front index of the array.
+ * @mid: The middle index of the array.
+ * @back: The back index of the array.
+ */
+void merge_subarr(int *subarr, int *buff, size_t front, size_t mid,
+		size_t back)
+{
+	size_t i, j, k = 0;
+
+	printf("Merging...\n[left]: ");
+	print_array(subarr + front, mid - front);
+
+	printf("[right]: ");
+	print_array(subarr + mid, back - mid);
+
+	for (i = front, j = mid; i < mid && j < back; k++)
+		buff[k] = (subarr[i] < subarr[j]) ? subarr[i++] : subarr[j++];
+	for (; i < mid; i++)
+		buff[k++] = subarr[i];
+	for (; j < back; j++)
+		buff[k++] = subarr[j];
+	for (i = front, k = 0; i < back; i++)
+		subarr[i] = buff[k++];
+
+	printf("[Done]: ");
+	print_array(subarr + front, back - front);
+}
+
+/**
+ * merge_sort_recursive - Implement the merge sort algorithm through recursion.
+ * @subarr: A subarray of an array of integers to sort.
+ * @buff: A buffer to store the sorted result.
+ * @front: The front index of the subarray.
+ * @back: The back index of the subarray.
+ */
+void merge_sort_recursive(int *subarr, int *buff, size_t front, size_t back)
+{
+	size_t mid;
+
+	if (back - front > 1)
 	{
-		tmp = array[l];
-		array[l] = array[r];
-		array[r] = tmp;
+		mid = front + (back - front) / 2;
+		merge_sort_recursive(subarr, buff, front, mid);
+		merge_sort_recursive(subarr, buff, mid, back);
+		merge_subarr(subarr, buff, front, mid, back);
 	}
 }
 
 /**
- * quick_sort_range_lomuto - Sorts a sub array using the
- * quick sort algorithm and Lomuto's partition scheme.
- * @array: The array containing the sub-array.
- * @low: The starting position of the sub-array.
- * @high: The ending position of the sub-array.
- * @size: The length of the array.
+ * merge_sort - Sort an array of integers in ascending
+ *              order using the merge sort algorithm.
+ * @array: An array of integers.
+ * @size: The size of the array.
+ *
+ * Description: Implements the top-down merge sort algorithm.
  */
-void quick_sort_range_lomuto(int *array, size_t low, size_t high, size_t size)
+void merge_sort(int *array, size_t size)
 {
-	size_t k, i;
-	int pivot;
+	int *buff;
 
-	if ((low >= high) || (array == NULL))
+	if (array == NULL || size < 2)
 		return;
-	pivot = array[high];
-	k = low;
-	for (i = low; i < high; i++)
-	{
-		if (array[i] <= pivot)
-		{
-			if (k != i)
-			{
-				swap_items(array, k, i);
-				print_array(array, size);
-			}
-			k++;
-		}
-	}
-	if (k != high)
-	{
-		swap_items(array, k, high);
-		print_array(array, size);
-	}
-	if (k - low > 1)
-		quick_sort_range_lomuto(array, low, k - 1, size);
-	if (high - k > 1)
-		quick_sort_range_lomuto(array, k + 1, high, size);
-}
 
-/**
- * quick_sort - Sorts an array using the quick sort algorithm
- * and Lomuto's partition scheme.
- * @array: The array to sort.
- * @size: The length of the array.
- */
-void quick_sort(int *array, size_t size)
-{
-	if (array != NULL)
-	{
-		quick_sort_range_lomuto(array, 0, size - 1, size);
-	}
+	buff = malloc(sizeof(int) * size);
+	if (buff == NULL)
+		return;
+
+	merge_sort_recursive(array, buff, 0, size);
+
+	free(buff);
 }
